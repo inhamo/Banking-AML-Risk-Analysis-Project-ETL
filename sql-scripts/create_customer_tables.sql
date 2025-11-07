@@ -1,5 +1,5 @@
 /*************************************************************************************
-Script		: create_customers_silver_to_tables.sql
+Script		: pcd_create_customer_normalized_tables.sql
 Purpose		: ETL procedure to create tables for customers tables 
 Author		: Innocent Nhamo
 Created On	: 2025-11-07
@@ -375,4 +375,5 @@ BEGIN
 	CREATE INDEX IDX_dim_contacts_contact ON silver.dim_contacts(contact);
 
 	PRINT 'Indexes created';
+
 END 
