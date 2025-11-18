@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Distinct Account Numbers Counter</title>
+  <style>
+    body { 
+      font-family: "Segoe UI", Arial, sans-serif; 
+      padding: 20px; 
+      background: #f5f5f5;
+    }
+    .counter {
+      font-size: 48px;
+      font-weight: bold;
+      color: #106ebe;
+      text-align: center;
+      margin: 40px 0;
+    }
+    h1 { text-align: center; color: #333; }
+  </style>
+</head>
+<body>
+
+  <h1>Number of Distinct Account Numbers</h1>
+  <div class="counter" id="uniqueCount">Loading...</div>
+
+  <!-- Power BI will inject the data here -->
+  <script type="text/javascript">
+    // This function is called by Power BI when data is passed to the visual
+    window.powerbi = window.powerbi || {};
+    
+    function render(data) {
+      // Expecting data to have a column called "account_number"
+      const accountNumbers = data.map(row => row.account_number);
+      
+      // Count unique values using Set
+      const uniqueCount = new Set(accountNumbers).size;
+      
+      document.getElementById("uniqueCount").textContent = uniqueCount.toLocaleString();
+    }
+
+    // Listen for the data from Power BI (this is the standard way in Python/R iframe visuals)
+    window.addEventListener("message", function(event) {
+      if (event.data && Array.isArray(event.data)) {
+        render(event.data);
+      }
+    });
+
+    // If you're testing outside Power BI, you can simulate data like this:
+    /*
+    const testData = [
+      { account_number: "ACC001" },
+      { account_number: "ACC002" },
+      { account_number: "ACC001" },
+      { account_number: "ACC003" }
+    ];
+    render(testData);  // → shows 3
+    */
+  </script>
+</body>
+</html>
