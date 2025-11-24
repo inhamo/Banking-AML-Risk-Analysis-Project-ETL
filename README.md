@@ -53,7 +53,14 @@ The BDW will follow a **Medallion Architecture** (Bronze, Silver, Gold layers) i
 * **Silver (Cleansed & Integrated):** Data is cleansed, standardized, deduplicated, and integrated from various sources into a conformed, business-ready model.
 * **Gold (Business Semantics):** Data is aggregated and structured into purpose-built data charts for specific business functions (e.g., Customer 360, Risk Management, Regulatory Reporting).
 
+**ACCOUNTS DATA FLOW**
 ![Accounts Data Flow](https://github.com/inhamo/Banking-AML-Risk-Analysis-Project-ETL/blob/main/Accounts%20Data%20Flow.PNG?raw=1)
+
+**CUSTOMERS DATA FLOW**
+![Customers Data Flow](https://github.com/inhamo/Banking-AML-Risk-Analysis-Project-ETL/blob/main/Customers%20Data%20Flow.PNG?raw=1)
+
+**TRANSACTIONS DATA FLOW**
+![Transactions Data Flow](https://github.com/inhamo/Banking-AML-Risk-Analysis-Project-ETL/blob/main/Transaction%20Data%20Flow.PNG?raw=1)
 ---
 
 ## 4. Technology Stack
