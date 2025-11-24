@@ -48,7 +48,7 @@ To enable a data-driven culture at Wolf Bank by providing a secure, scalable, an
 The BDW will follow a **Medallion Architecture** (Bronze, Silver, Gold layers) implemented in the SQL Server platform, combining the best of data lakes and data warehouses.
 
 **HIGH-LEVEL DATA ARCHITECHURE**
-![Data Architecture Flow](https://github.com/inhamo/Banking-AML-Risk-Analysis-Project-ETL/blob/main/Design%2520Data%2520Architecture.png?raw=1)
+![Data Architecture](https://github.com/inhamo/Banking-AML-Risk-Analysis-Project-ETL/blob/main/Design%20Data%20Architecture.PNG?raw=1)
 
 ### Layers Explained:
 
