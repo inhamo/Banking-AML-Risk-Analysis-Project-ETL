@@ -1,11 +1,10 @@
 /*************************************************************************************
 Script		: clean_accounts_silver_to_staging.sql
-Purpose		: ETL procedure to load bronze messy data into a unionized stg_customers
+Purpose		: ETL procedure to load bronze messy data into a unionized stg_transactions
 			  standardize text, solve for null values and duplicates 
 Author		: Innocent Nhamo
 Created On	: 2025-10-29
-Version		: 
-			  v.1 - Initial creation 
+Version		: v.3 - Fixed account ID to account number mapping
 **************************************************************************************/
 
 USE banking_db; 
@@ -31,7 +30,6 @@ BEGIN
         *********************************************/
 
 		-- Create the error log table if it does not exist 
-
 		IF OBJECT_ID('error_log.etl_log', 'U') IS NULL 
 		BEGIN 
 			CREATE TABLE error_log.etl_log (
@@ -55,8 +53,8 @@ BEGIN
         *********************************************/
 
 		-- Drop temp table if it already exists
-		IF OBJECT_ID('tempdb..#stg_transctions') IS NOT NULL
-			DROP TABLE #stg_transactions
+		IF OBJECT_ID('tempdb..#trans_temp') IS NOT NULL
+			DROP TABLE #trans_temp
 
 		-- Union tables and insert into a temporary table
 		PRINT 'Union all tables...';
@@ -79,29 +77,29 @@ BEGIN
 		) AS all_transactons; 
 		PRINT 'Union all tables successful';
 
+		-- FIXED: Map ALL account IDs (ACC...) to their account numbers
 		WITH CTE_fix_receiving_account AS (
 			SELECT 
 				tt.*, 
 				CASE 
-					-- If receiving_account starts with 'AC', try to map to account_number
-					WHEN receiving_account LIKE 'AC%' THEN 
-						COALESCE(fa.account_number, tt.receiving_account)
-					-- For CREDIT transactions, if receiving_account is NULL, it should be external
-					WHEN UPPER(TRIM(tt.debit_credit)) = 'CREDIT' AND tt.receiving_account IS NULL 
-						THEN 'EXTERNAL_ACCOUNT'  -- or leave as NULL if appropriate
-					-- For DEBIT transactions with NULL receiving_account, use the source account
-					WHEN UPPER(TRIM(tt.debit_credit)) = 'DEBIT' AND tt.receiving_account IS NULL 
-						THEN ffa.account_number
-					-- For eWallet transactions, leave empty
+					-- For eWallet transactions, leave empty (no receiving account)
 					WHEN UPPER(TRIM(tt.channel)) = 'EWALLET' THEN ''
-					-- Otherwise, use the receiving_account as is
-					ELSE tt.receiving_account
+					
+					-- If receiving_account is an account ID (starts with 'ACC'), map it
+					WHEN tt.receiving_account LIKE 'ACC%' THEN 
+						COALESCE(fa.account_number, '')
+					
+					-- If receiving_account is already an account number, keep it
+					WHEN tt.receiving_account IS NOT NULL 
+						AND tt.receiving_account NOT LIKE 'ACC%' 
+						THEN tt.receiving_account
+					
+					-- If receiving_account is NULL, leave empty
+					ELSE ''
 				END AS receiving_account_number
 			FROM #trans_temp tt
 			LEFT JOIN silver.fact_accounts fa
 				ON fa.account_id = tt.receiving_account 
-			LEFT JOIN silver.fact_accounts ffa 
-				ON ffa.account_id = tt.account_id
 		)
 		SELECT
 			UPPER(TRIM(transaction_id)) AS transaction_id, 
@@ -124,7 +122,7 @@ BEGIN
 			CASE 
 				WHEN UPPER(TRIM(receiving_bank)) LIKE 'SAME BANK' THEN '' 
 				WHEN UPPER(TRIM(channel)) = 'EWALLET' THEN '' 
-				ELSE receiving_bank
+				ELSE UPPER(TRIM(receiving_bank))
 			END AS receiving_bank,
 			CASE WHEN UPPER(TRIM(is_international)) = 'YES' THEN 1 ELSE 0 END AS is_international_transaction, 
 			CASE WHEN UPPER(TRIM(instant_payment)) = 'YES' THEN 1 ELSE 0 END AS is_instant_payment, 
@@ -144,6 +142,7 @@ BEGIN
 
 		-- Get the number of rows inserted
 		SET @RowsInserted = @@ROWCOUNT;
+		PRINT CONCAT('Rows inserted into staging: ', @RowsInserted);
 
         /********************************************
 			Create normalized tables
@@ -153,28 +152,36 @@ BEGIN
 		IF EXISTS (SELECT 1 FROM sys.procedures WHERE name = 'pcd_create_transactions_normalized_tables' AND schema_id = SCHEMA_ID('silver'))
 		BEGIN
 			EXEC silver.pcd_create_transactions_normalized_tables;
-			PRINT 'Stored procedure executed successfully';
+			PRINT 'Normalized tables created successfully';
 		END
 		ELSE
 		BEGIN
-			PRINT 'Stored procedure silver.pcd_create_transactions_normalized_tables does not exist';
+			PRINT 'WARNING: Stored procedure silver.pcd_create_transactions_normalized_tables does not exist';
 		END
-
 
         /********************************************
 			Insert into the normalized tables
         *********************************************/
 		
-		-- Check if stored procedure exists and execute it
-		IF EXISTS (SELECT 1 FROM sys.procedures WHERE name = 'pcd_insert_into_accounts_normalized_tables' AND schema_id = SCHEMA_ID('silver'))
+		-- Call the correct stored procedure for transactions
+		IF EXISTS (SELECT 1 FROM sys.procedures WHERE name = 'pcd_insert_into_transactions_normalized_tables' AND schema_id = SCHEMA_ID('silver'))
 		BEGIN
-			EXEC silver.pcd_insert_into_accounts_normalized_tables;
-			PRINT 'Stored procedure executed successfully';
+			EXEC silver.pcd_insert_into_transactions_normalized_tables;
+			PRINT 'Data inserted into normalized tables successfully';
 		END
 		ELSE
 		BEGIN
-			PRINT 'Stored procedure silver.pcd_insert_into_accounts_normalized_tables does not exist';
+			PRINT 'WARNING: Stored procedure silver.pcd_insert_into_transactions_normalized_tables does not exist';
 		END
+
+		-- Log successful completion
+		UPDATE error_log.etl_log
+		SET end_time = SYSDATETIME(),
+			status = 'COMPLETED', 
+			rows_processed = @RowsInserted
+		WHERE batch_id = @BatchID;
+
+		PRINT 'ETL procedure completed successfully';
 
 	END TRY 
 	BEGIN CATCH 
@@ -186,10 +193,12 @@ BEGIN
 		UPDATE error_log.etl_log
 		SET end_time = SYSDATETIME(),
 			status = 'FAILED', 
-			error_message = @ErrorMessage
+			error_message = @ErrorMessage,
+			rows_processed = @RowsInserted
 		WHERE batch_id = @BatchID;
 
-		RAISERROR('ETL failed in pcd_clean_transactions_to_staging: %s', 16, 1, @ErrorMessage);
+		-- Re-throw the error
+		THROW;
 
 	END CATCH
 END; 
