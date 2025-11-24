@@ -1,5 +1,5 @@
 /*************************************************************************************
-Script		: pcd_insert_into_customer_normalized_tables.sql
+Script		: insert_into_customer_tables.sql
 Purpose		: ETL procedure to load data into normalized customers tables 
 Author		: Innocent Nhamo
 Created On	: 2025-11-07
@@ -92,7 +92,7 @@ BEGIN
 			ELSE NULL
 		END AS age_group
 	FROM #stg_customers
-	PRINT 'Address table customer data loading complete';
+	PRINT 'Fact table customer data loading complete';
 
 	-- ADDRESS TABLE
 	PRINT 'Loading data into the address table...'
