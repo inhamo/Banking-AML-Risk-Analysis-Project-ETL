@@ -48,7 +48,7 @@ To enable a data-driven culture at Wolf Bank by providing a secure, scalable, an
 The BDW will follow a **Medallion Architecture** (Bronze, Silver, Gold layers) implemented in the SQL Server platform, combining the best of data lakes and data warehouses.
 
 **HIGH-LEVEL DATA ARCHITECHURE**
-![Data Architecture](https://github.com/inhamo/Banking-AML-Risk-Analysis-Project-ETL/blob/main/Design%20Data%20Architecture.PNG?raw=1)
+![Data Architecture](https://raw.githubusercontent.com/inhamo/Banking-AML-Risk-Analysis-Project-ETL/main/Design%20Data%20Architecture.PNG)
 
 ### Layers Explained:
 
@@ -57,13 +57,14 @@ The BDW will follow a **Medallion Architecture** (Bronze, Silver, Gold layers) i
 * **Gold (Business Semantics):** Data is aggregated and structured into purpose-built data charts for specific business functions (e.g., Customer 360, Risk Management, Regulatory Reporting).
 
 **ACCOUNTS DATA FLOW**
-![Accounts Data Flow](https://github.com/inhamo/Banking-AML-Risk-Analysis-Project-ETL/blob/main/Accounts%20Data%20Flow.PNG?raw=1)
+![Accounts Data Flow](https://raw.githubusercontent.com/inhamo/Banking-AML-Risk-Analysis-Project-ETL/main/Accounts%20Data%20Flow.PNG)
 
 **CUSTOMERS DATA FLOW**
-![Customers Data Flow](https://github.com/inhamo/Banking-AML-Risk-Analysis-Project-ETL/blob/main/Customers%20Data%20Flow.PNG?raw=1)
+![Customers Data Flow](https://raw.githubusercontent.com/inhamo/Banking-AML-Risk-Analysis-Project-ETL/main/Customers%20Data%20Flow.PNG)
 
 **TRANSACTIONS DATA FLOW**
-![Transactions Data Flow](https://github.com/inhamo/Banking-AML-Risk-Analysis-Project-ETL/blob/main/Transaction%20Data%20Flow.PNG?raw=1)
+![Transactions Data Flow](https://raw.githubusercontent.com/inhamo/Banking-AML-Risk-Analysis-Project-ETL/main/Transaction%20Data%20Flow.PNG)
+--------------------------------------------------------------------------------------------------------------------------------------------
 ---
 
 ## 4. Technology Stack
